@@ -1,2 +1,185 @@
 qemu-system-x86_64 boot.flp
 ./compiler.sh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/boot.asm
+[org 0x7c00]
+
+mov [BOOT_PART], dl
+mov bp, 0x7c00
+mov sp, bp
+
+
+call ReadPart
+
+jmp PROGRAM_SPACE
+
+%include "printing.asm"
+%include "FileReader.asm"
+
+times 510-($-$$) db 0 
+
+dw 0xaa55      
+
+/printing.asm
+Printing:
+    push ax
+    push bx
+
+    mov ah, 0x0e
+    .Loop:
+    cmp [bx], byte 0
+    je .Exit
+        mov al, [bx]
+        int 0x10
+        inc bx
+        jmp .Loop
+    .Exit:
+
+    pop ax
+    pop bx
+    ret
+
+
+
+
+
+
+
+
+/partition.asm
+[org 0x7e00]
+
+jmp StartProtectMode
+
+%include "GDT.asm"
+%include "printing.asm"
+
+StartProtectMode:
+    call StartA20
+    cli
+    lgdt [gdt_criptor]
+    mov eax, cr0
+    or eax, 1
+    mov cr0, eax
+    jmp code:LaunchProtectMode
+
+StartA20:
+    in al, 0x92
+    or al, 2
+    out 0x92, al
+    ret
+
+[bits 32]
+
+LaunchProtectMode:
+
+    mov ax, data
+    mov ds, ax
+    mov ss, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    
+    mov [0xb8000], byte ' '
+
+    mov [0xb8004], byte 'T'
+    mov [0xb8006], byte 'R'
+    mov [0xb8008], byte 'O'
+    mov [0xb800a], byte 'L'
+
+    mov [0xb800a], byte ' '
+
+    jmp $
+
+
+times 2048-($-$$) db 0
+
+
+/FileReader.asm
+PROGRAM_SPACE equ 0x7e00
+
+ReadPart:
+    mov ah, 0x02
+    mov bx, PROGRAM_SPACE
+    mov al, 2
+    mov dl, [BOOT_PART]
+    mov ch, 0x00
+    mov dh, 0x00
+    mov cl, 0x02
+    
+    int 0x13
+    
+    jc PartReadFailed
+
+
+    ret
+
+BOOT_PART:
+    db 0
+
+PartReadFailedString:
+    db 'Partition read error!',0
+
+PartReadFailed:
+    mov bx, PartReadFailedString
+    call Printing
+
+    jmp $
+
+
+
+/GDT.asm
+    gdt_null:
+    dd 0
+    dd 0
+
+gdt_code:
+    dw 0xFFFF       ;Limit
+    dw 0x0000       ;Low
+    db 0x00         ;Medium  
+    db 10011010b    ;Flags
+    db 11001111b    ;Flags and limit
+    db 0x00         ;High
+
+gdt_data:
+    dw 0xFFFF       ;Limit
+    dw 0x0000       ;Low
+    db 0x00         ;Medium
+    db 10010010b    ;Flags
+    db 11001111b    ;Flags and limit
+    db 0x00         ;High
+
+gdt_end:
+
+gdt_criptor:
+    gdt_size:
+        dw gdt_end - gdt_null - 1
+        dd gdt_null
+
+code equ gdt_code - gdt_null
+data equ gdt_data - gdt_null
+
+/compiler.sh
+nasm boot.asm -f bin -o boot.bin
+nasm partition.asm -f bin -o partition.bin
+cat boot.bin partition.bin > boot.flp
+read -p "Press Enter to continue..."
