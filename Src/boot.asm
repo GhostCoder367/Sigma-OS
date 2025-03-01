@@ -19,11 +19,11 @@ int 0x10
 draw_square:
 
     push cx
-    mov cx, 50          
+    mov cx, 50
 
 
     mov bx, si        
-    mov bh, 0      
+    mov bh, 200
     
 draw_row:
 
