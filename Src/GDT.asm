@@ -23,7 +23,16 @@ gdt_end:
 gdt_criptor:
     gdt_size:
         dw gdt_end - gdt_null - 1
-        dd gdt_null
+        dq gdt_null
 
 code equ gdt_code - gdt_null
 data equ gdt_data - gdt_null
+
+[bits 32]
+
+EditGDT:
+    mov [gdt_code + 6], byte 10101111b
+    mov [gdt_code + 6], byte 10101111b
+    ret
+
+[bits 16]
