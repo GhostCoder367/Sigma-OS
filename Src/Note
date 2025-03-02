@@ -3,7 +3,7 @@ qemu-system-x86_64 boot.flp
 
 
 
-
+curl -O http://ftp.gnu.org/gnu/binutils-2.35.1.tar.gz
 
 
 
@@ -90,6 +90,9 @@ StartA20:
 
 [bits 32]
 
+%include "CPU.asm"
+%include "Page.asm"
+
 LaunchProtectMode:
 
     mov ax, data
@@ -99,17 +102,22 @@ LaunchProtectMode:
     mov fs, ax
     mov gs, ax
     
-    mov [0xb8000], byte ' '
 
-    mov [0xb8004], byte 'T'
-    mov [0xb8006], byte 'R'
-    mov [0xb8008], byte 'O'
-    mov [0xb800a], byte 'L'
 
-    mov [0xb800a], byte ' '
+    call CPU_Detection
+    call LongMode_Detection
+    call Paging
+    call EditGDT
+    jmp code:Open_64bit
 
+[bits 64]
+
+Open_64bit:
+    mov edi, 0xA0000
+    mov rax, 0x1f201f201f201f20
+    mov ecx, 500
+    rep stosq
     jmp $
-
 
 times 2048-($-$$) db 0
 
@@ -148,7 +156,7 @@ PartReadFailed:
 
 
 /GDT.asm
-    gdt_null:
+   gdt_null:
     dd 0
     dd 0
 
@@ -173,10 +181,102 @@ gdt_end:
 gdt_criptor:
     gdt_size:
         dw gdt_end - gdt_null - 1
-        dd gdt_null
+        dq gdt_null
 
 code equ gdt_code - gdt_null
 data equ gdt_data - gdt_null
+
+[bits 32]
+
+EditGDT:
+    mov [gdt_code + 6], byte 10101111b
+    mov [gdt_code + 6], byte 10101111b
+    ret
+
+[bits 16]
+
+
+/CPU.asm
+CPU_Detection:
+    pushfd
+    pop eax
+    mov ecx, eax
+    xor eax, 1 << 21
+
+    push eax
+    popfd
+
+    pushfd
+    pop eax
+
+    push ecx
+    popfd
+
+    xor eax, ecx
+    jz NoCPU
+
+    ret
+
+LongMode_Detection:
+    mov eax, 0x80000001
+    cpuid
+    test edx, 1 << 29
+    jz LongMode_Disable
+    ret
+
+LongMode_Disable:
+    hlt     ;Long mode has disable
+
+NoCPU:
+    hlt     ;This CPU not supported
+
+
+
+
+
+
+/Page.asm
+PageEntry equ 0x1000
+
+Paging:
+    mov edi, PageEntry
+    mov cr3, edi
+
+    mov dword [edi], 0x2003
+    add edi, 0x1000
+
+    mov dword [edi], 0x3003
+    add edi, 0x1000
+
+    mov dword [edi], 0x4003
+    add edi, 0x1000
+
+    mov ebx, 0x00000003
+    mov ecx, 512
+
+    .GetEntry:
+        mov dword [edi], ebx
+        add ebx, 0x1000
+        add edi, 8
+        Loop .GetEntry
+
+    mov eax, cr4
+    or eax, 1 << 5
+    mov cr4, eax
+
+    mov ecx, 0xC0000080
+    rdmsr
+    or eax, 1 << 8
+    wrmsr
+
+    mov eax, cr0
+    or eax, 1 << 31
+    mov cr0, eax  
+
+    ret
+
+
+
 
 /compiler.sh
 nasm boot.asm -f bin -o boot.bin
