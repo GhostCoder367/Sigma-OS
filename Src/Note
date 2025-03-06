@@ -1,5 +1,5 @@
-qemu-system-x86_64 boot.flp
-./compiler.sh
+qemu-system-x86_64 boot.img
+./compiler.bat
 
 
 

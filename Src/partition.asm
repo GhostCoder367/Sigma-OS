@@ -45,10 +45,20 @@ LaunchProtectMode:
 [bits 64]
 
 Open_64bit:
-    mov edi, 0xA0000 
+    mov edi, 0xB8000
     mov rax, 0x1f201f201f201f20
     mov ecx, 500
     rep stosq
+    mov edi, 0x00b8000              
+    
+    mov rax, 0x1F6C1F6C1F651F48    
+    mov [edi],rax
+    
+    mov rax, 0x1F6F1F571F201F6F
+    mov [edi + 8], rax
+
+    mov rax, 0x1F211F641F6C1F72
+    mov [edi + 16], rax
     jmp $
 
 times 2048-($-$$) db 0

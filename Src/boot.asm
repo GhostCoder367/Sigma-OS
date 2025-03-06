@@ -3,9 +3,9 @@
 mov [BOOT_PART], dl
 mov bp, 0x7c00
 mov sp, bp
-mov ah, 0x00
-mov al, 0x13
-int 0x10
+;mov ah, 0x00
+;mov al, 0x13
+;int 0x10
 
 
 
