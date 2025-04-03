@@ -1,3 +1,4 @@
+
 [org 0x7e00]
 
 jmp StartProtectMode
@@ -45,20 +46,38 @@ LaunchProtectMode:
 [bits 64]
 
 Open_64bit:
-    mov edi, 0xB8000
-    mov rax, 0x1f201f201f201f20
-    mov ecx, 500
-    rep stosq
-    mov edi, 0x00b8000              
-    
-    mov rax, 0x1F6C1F6C1F651F48    
-    mov [edi],rax
-    
-    mov rax, 0x1F6F1F571F201F6F
-    mov [edi + 8], rax
+    mov edi, 0xA0000
 
-    mov rax, 0x1F211F641F6C1F72
-    mov [edi + 16], rax
+
+    mov eax, 320        
+    mov ebx, 50        
+    mov edx, 100      
+    
+   
+    call Vec2toBufferLoc
+
+
+
+  
+    mov al, 0x01       
+    mov [edi + esi], al  
+
+    mov ecx, 64000
+
+    rep stosb
+    
+
     jmp $
 
+Vec2toBufferLoc:
+
+    mov ecx, ebx        
+    imul ecx, eax      
+
+
+    add esi, edx       
+
+
+    ret
+A_CHAR db 0x1F, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11, 0x11
 times 2048-($-$$) db 0
