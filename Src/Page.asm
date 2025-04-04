@@ -1,38 +1,56 @@
 PageEntry equ 0x1000
 
+; -------------------------------
+; Paging Initialization
+; -------------------------------
 Paging:
-    mov edi, PageEntry
-    mov cr3, edi
+    mov edi, PageEntry       ; Set up page directory base
+    mov cr3, edi             ; Load page directory base into CR3
 
-    mov dword [edi], 0x2003
-    add edi, 0x1000
+; -------------------------------
+; Set Up Page Directory Entries
+; -------------------------------
+    mov dword [edi], 0x2003  ; Map first page table
+    add edi, 0x1000          ; Move to next entry
 
-    mov dword [edi], 0x3003
-    add edi, 0x1000
+    mov dword [edi], 0x3003  ; Map second page table
+    add edi, 0x1000          ; Move to next entry
 
-    mov dword [edi], 0x4003
-    add edi, 0x1000
+    mov dword [edi], 0x4003  ; Map third page table
+    add edi, 0x1000          ; Move to next entry
 
-    mov ebx, 0x00000003
-    mov ecx, 512
+; -------------------------------
+; Set Up Page Table Entries
+; -------------------------------
+    mov ebx, 0x00000003      ; Starting address for page table entries
+    mov ecx, 512             ; Number of entries to create
 
-    .GetEntry:
-        mov dword [edi], ebx
-        add ebx, 0x1000
-        add edi, 8
-        Loop .GetEntry
+.GetEntry:
+    mov dword [edi], ebx     ; Write page table entry
+    add ebx, 0x1000          ; Increment address by 4 KB
+    add edi, 8               ; Move to the next entry
+    loop .GetEntry           ; Repeat for all entries
 
-    mov eax, cr4
-    or eax, 1 << 5
-    mov cr4, eax
+; -------------------------------
+; Enable Paging Features
+; -------------------------------
+    mov eax, cr4             ; Read CR4
+    or eax, 1 << 5           ; Enable PAE (Physical Address Extension)
+    mov cr4, eax             ; Write back to CR4
 
-    mov ecx, 0xC0000080
-    rdmsr
-    or eax, 1 << 8
-    wrmsr
+; -------------------------------
+; Enable Long Mode
+; -------------------------------
+    mov ecx, 0xC0000080      ; Load MSR for EFER (Extended Feature Enable Register)
+    rdmsr                    ; Read MSR
+    or eax, 1 << 8           ; Enable Long Mode
+    wrmsr                    ; Write back to MSR
 
-    mov eax, cr0
-    or eax, 1 << 31
-    mov cr0, eax  
+; -------------------------------
+; Enable Paging in CR0
+; -------------------------------
+    mov eax, cr0             ; Read CR0
+    or eax, 1 << 31          ; Set the paging bit
+    mov cr0, eax             ; Write back to CR0
 
-    ret
+    ret                      ; Return from Paging

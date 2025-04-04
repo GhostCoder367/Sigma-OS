@@ -1,11 +1,30 @@
-
 [org 0x7e00]
 
+; -------------------------------
+; Color Definitions
+; -------------------------------
+%define COLOR_BLUE    0x01
+%define COLOR_GREEN   0x02
+%define COLOR_RED     0x04
+%define COLOR_CYAN    0x03
+%define COLOR_MAGENTA 0x05
+%define COLOR_YELLOW  0x06
+%define COLOR_WHITE   0x07
+
+; -------------------------------
+; Start Boot Process
+; -------------------------------
 jmp StartProtectMode
 
+; -------------------------------
+; Include External Files
+; -------------------------------
 %include "GDT.asm"
 %include "printing.asm"
 
+; -------------------------------
+; Protected Mode Initialization
+; -------------------------------
 StartProtectMode:
     call StartA20
     cli
@@ -23,19 +42,19 @@ StartA20:
 
 [bits 32]
 
+; -------------------------------
+; Include Additional Modules
+; -------------------------------
 %include "CPU.asm"
 %include "Page.asm"
 
 LaunchProtectMode:
-
     mov ax, data
     mov ds, ax
     mov ss, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
-    
-
 
     call CPU_Detection
     call LongMode_Detection
@@ -45,42 +64,37 @@ LaunchProtectMode:
 
 [bits 64]
 
+; -------------------------------
+; Long Mode Entry Point
+; -------------------------------
 Open_64bit:
-    mov edi, 0xA0000
+    mov edi, 0xA0000         ; Set video memory base address
 
+    mov al, COLOR_WHITE      ; Set color to white
+    mov ebx, 50              ; X-coordinate
+    mov edx, 100             ; Y-coordinate
+    call Draw                ; Draw pixel
 
-    mov al, 0x02
-    mov ebx, 50        
-    mov edx, 100  
-    call Draw
-
-    mov ecx, 64000
-
+    mov ecx, 64000           ; Fill screen with color
     rep stosb
-    
 
-    jmp $
+    jmp $                    ; Infinite loop
+
+; -------------------------------
+; Drawing Functions
+; -------------------------------
 Draw:
-
-    
-    
-   
-    call Vec2toBufferLoc
-
-
-
-    mov [edi + esi], al  
-    ret 
+    call Vec2toBufferLoc     ; Convert coordinates to buffer location
+    mov [edi + esi], al      ; Write color to video memory
+    ret
 
 Vec2toBufferLoc:
-
-    mov ecx, ebx        
-    imul ecx, eax      
-
-
-    add esi, edx       
-
-
+    mov ecx, ebx             ; Load X-coordinate
+    imul ecx, eax            ; Multiply X by screen width (assumed in eax)
+    add esi, edx             ; Add Y-coordinate
     ret
-A_CHAR db 0x1F, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11, 0x11
-times 2048-($-$$) db 0
+
+; -------------------------------
+; Padding and Alignment
+; -------------------------------
+times 2048-($-$$) db 0       ; Pad to 2048 bytes

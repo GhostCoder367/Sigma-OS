@@ -1,32 +1,41 @@
+; -------------------------------
+; CPU Feature Detection
+; -------------------------------
 CPU_Detection:
-    pushfd
-    pop eax
-    mov ecx, eax
-    xor eax, 1 << 21
+    pushfd                  ; Save EFLAGS to the stack
+    pop eax                 ; Load EFLAGS into EAX
+    mov ecx, eax            ; Save original EFLAGS in ECX
+    xor eax, 1 << 21        ; Toggle the ID flag (bit 21)
 
-    push eax
-    popfd
+    push eax                ; Save modified EFLAGS to the stack
+    popfd                   ; Load modified EFLAGS into EFLAGS
 
-    pushfd
-    pop eax
+    pushfd                  ; Save modified EFLAGS to the stack
+    pop eax                 ; Load modified EFLAGS into EAX
 
-    push ecx
-    popfd
+    push ecx                ; Restore original EFLAGS from ECX
+    popfd                   ; Load original EFLAGS into EFLAGS
 
-    xor eax, ecx
-    jz NoCPU
+    xor eax, ecx            ; Check if the ID flag was successfully toggled
+    jz NoCPU                ; Jump if the CPU does not support CPUID
 
-    ret
+    ret                     ; Return if the CPU supports CPUID
 
+; -------------------------------
+; Long Mode Detection
+; -------------------------------
 LongMode_Detection:
-    mov eax, 0x80000001
-    cpuid
-    test edx, 1 << 29
-    jz LongMode_Disable
-    ret
+    mov eax, 0x80000001     ; Query extended CPU features
+    cpuid                   ; Execute CPUID instruction
+    test edx, 1 << 29       ; Check if the Long Mode bit (bit 29) is set
+    jz LongMode_Disable     ; Jump if Long Mode is not supported
+    ret                     ; Return if Long Mode is supported
 
+; -------------------------------
+; Error Handlers
+; -------------------------------
 LongMode_Disable:
-    hlt     ;Long mode has disable
+    hlt                     ; Halt the CPU (Long Mode is not supported)
 
 NoCPU:
-    hlt     ;This CPU not supported
+    hlt                     ; Halt the CPU (CPUID is not supported)
