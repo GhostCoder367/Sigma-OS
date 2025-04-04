@@ -49,18 +49,10 @@ Open_64bit:
     mov edi, 0xA0000
 
 
-    mov eax, 320        
+    mov al, 0x02
     mov ebx, 50        
-    mov edx, 100      
-    
-   
-    call Vec2toBufferLoc
-
-
-
-  
-    mov al, 0x01       
-    mov [edi + esi], al  
+    mov edx, 100  
+    call Draw
 
     mov ecx, 64000
 
@@ -68,6 +60,17 @@ Open_64bit:
     
 
     jmp $
+Draw:
+
+    
+    
+   
+    call Vec2toBufferLoc
+
+
+
+    mov [edi + esi], al  
+    ret 
 
 Vec2toBufferLoc:
 
