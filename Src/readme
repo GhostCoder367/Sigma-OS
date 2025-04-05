@@ -1,7 +1,32 @@
 Custom OS written in asm
-to compile run:
-cd Src
-./compiler.bat
-wsl 
-cd Src
+
+### Steps to Compile and Run:
+
+1. **Install NASM (if not already installed):**
+   - Download NASM from the official website: [https://www.nasm.us/](https://www.nasm.us/).
+   - Run the installer and follow the instructions.
+   - Ensure NASM is added to your system's PATH.
+   - Verify the installation by running the following command in a terminal:
+     ```
+     nasm -v
+     ```
+     You should see the version of NASM installed.
+
+2. **Navigate to the [Src] directory:**
+
+3. **Run the `compiler.bat` script to assemble and link the OS:**
+
+4. **Start the Windows Subsystem for Linux (WSL):**
+
+5. **Navigate back to the [Src](http://_vscodecontentref_/2) directory in WSL:**
+
+6. **Run the OS using QEMU:**
+
+### Notes:
+- Ensure that `qemu-system-x86_64` is installed and added to your system's PATH.
+- If you encounter any errors during compilation, check the `compiler.bat` script for missing dependencies or incorrect paths.
+- Repeat steps 3–6 to recompile and test changes to the OS code.
+
+### Commands:
 qemu-system-x86_64 boot.img
+./compiler.bat
