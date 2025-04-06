@@ -71,12 +71,18 @@ Open_64bit:
     mov edi, 0xA0000         ; Set video memory base address
 
     mov al, COLOR_WHITE      ; Set color to white
-    mov ebx, 50              ; X-coordinate
-    mov edx, 100             ; Y-coordinate
-    call Draw                ; Draw pixel
+          ; Draw pixel
 
     mov ecx, 64000           ; Fill screen with color
+
     rep stosb
+    mov edi, 0xA0000         ; Set video memory base address
+    mov al, COLOR_BLUE      ; Set color to blue
+    mov ecx, 64000
+    rep stosb     ; Draw pixel
+
+
+
 
     jmp $                    ; Infinite loop
 
@@ -84,8 +90,10 @@ Open_64bit:
 ; Drawing Functions
 ; -------------------------------
 Draw:
+
     call Vec2toBufferLoc     ; Convert coordinates to buffer location
     mov [edi + esi], al      ; Write color to video memory
+
     ret
 
 Vec2toBufferLoc:
