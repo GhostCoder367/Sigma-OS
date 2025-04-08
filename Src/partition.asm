@@ -68,20 +68,17 @@ LaunchProtectMode:
 ; Long Mode Entry Point
 ; -------------------------------
 Open_64bit:
-    mov edi, 0xA0000         ; Set video memory base address
+    mov edi, 0xA0000      ; Set video memory base address
+    mov bl, COLOR_BLUE 
+    call FillScreen
 
-    mov al, COLOR_WHITE      ; Set color to white
-          ; Draw pixel
+    mov eax, 120           ; Y-coordinate
+    mov ebx, 0             ; X-coordinate
+    mov ecx, 30000         ; Number of pixels to draw
+    mov bl, COLOR_GREEN    ; Set the color to blue
+    call DrawPixel         ; Draw a blue pixel at (0, 0)
 
-    mov ecx, 64000           ; Fill screen with color
-
-    rep stosb
-    mov edi, 0xA0000         ; Set video memory base address
-    mov al, COLOR_BLUE      ; Set color to blue
-    mov ecx, 64000
-    rep stosb     ; Draw pixel
-
-
+    
 
 
     jmp $                    ; Infinite loop
@@ -89,17 +86,36 @@ Open_64bit:
 ; -------------------------------
 ; Drawing Functions
 ; -------------------------------
-Draw:
 
-    call Vec2toBufferLoc     ; Convert coordinates to buffer location
-    mov [edi + esi], al      ; Write color to video memory
 
+
+FillScreen:
+    mov al, bl
+
+    mov ecx, 64000
+    rep stosb
     ret
+DrawPixel:
+    ; Inputs:
+    ;   eax = Y-coordinate (height)
+    ;   ebx = X-coordinate (width)
+    ;   ecx = Number of pixels to draw
+    ;   bl  = Color
 
-Vec2toBufferLoc:
-    mov ecx, ebx             ; Load X-coordinate
-    imul ecx, eax            ; Multiply X by screen width (assumed in eax)
-    add esi, edx             ; Add Y-coordinate
+    mov r8d, eax             ; Preserve Y-coordinate in r8d
+    mov r9d, ebx             ; Preserve X-coordinate in r9d
+
+
+    mov edi, 0xA0000         ; Set video memory base address
+    mov edx, 320             ; Screen width (320 pixels in mode 13h)
+    imul eax, edx            ; eax = Y * ScreenWidth
+    add eax, r9d             ; eax = X + (Y * ScreenWidth)
+    add edi, eax             ; edi = Video memory address for the starting pixel
+    sub edi, 2
+
+    mov eax, r8d             ; Restore Y-coordinate from r8d
+    mov al, bl               ; Load the color into AL
+    rep stosb                ; Write the color to the specified number of pixels
     ret
 
 ; -------------------------------
