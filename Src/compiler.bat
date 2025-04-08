@@ -1,6 +1,6 @@
 nasm boot.asm -f bin -o boot.bin
 
-nasm partition.asm -f bin -o partition.bin
+nasm boot2.asm -f bin -o boot2.bin
 
-copy /b boot.bin+partition.bin boot.img
+copy /b boot.bin+boot2.bin boot.img
 
