@@ -10,7 +10,7 @@ Open_64bit:
     mov ebx, 0             ; X-coordinate
     mov ecx, 30000         ; Number of pixels to draw
     mov bl, COLOR_GREEN    ; Set the color to blue
-    call DrawPixel         ; Draw a blue pixel at (0, 0)
+    call DrawPixel         ; Draws Green pixels starting from (0, 120) 30000 times
 
     
 
