@@ -89,7 +89,7 @@ DrawBitmapSkipPixel:
     inc r9d                  ; Move to the next pixel in the row
     inc r10d                 ; Increment column counter
     cmp r10d, r14d           ; Compare column counter with bitmap width
-    jl DrawBitmapColumnLoop   ; If not all columns in the row are drawn, repeat
+    jl DrawBitmapColumnLoop   ; If nopt all columns in the row are drawn, repeat
 
 DrawBitmapNextRow:
     inc r13d                 ; Move to the next row
